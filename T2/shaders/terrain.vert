@@ -17,9 +17,10 @@ varying float height_percentage;
 
 void main() {
 	vTextureCoord = aTextureCoord;
+	height_percentage = 0.15;
 	vec4 map = texture2D(uSampler2, vTextureCoord);
  
-	vec4 vertex = vec4(uPMatrix * uMVMatrix * vec4(aVertexPosition + aVertexNormal * map.rgb * 0.15, 1.0)); //when 
+	vec4 vertex = vec4(uPMatrix * uMVMatrix * vec4(aVertexPosition + aVertexNormal * map.rgb * height_percentage, 1.0)); //when 
 
 	height_percentage = 1.0 - map.r;
 
