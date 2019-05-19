@@ -40,17 +40,17 @@ class MyCubeMap extends CGFobject {
 
 		this.scene.pushMatrix();
             
-        if(this.day_value == 0) {
-            this.day_material.setTexture(this.day_text);
-            this.day_material.apply();
-        } else {
-            this.night_material.setTexture(this.night_text);
-            this.night_material.apply();
-        }
+            if(this.day_value == 0) {
+                this.day_material.setTexture(this.day_text);
+                this.day_material.apply();
+            } else {
+                this.night_material.setTexture(this.night_text);
+                this.night_material.apply();
+            }
 
-        this.scene.scale(this.size, this.size*4/5, this.size);
-		this.scene.translate(0.5, 0.5-0.003, 0.5);
-		this.cubemap.display();
+            this.scene.scale(this.size, this.size*4/5, this.size);
+            this.scene.translate(0.5, 0.5-0.003, 0.5);
+            this.cubemap.display();
 
         this.scene.popMatrix();
 

@@ -14,15 +14,6 @@ class Plane extends CGFobject{
 		this.q = (this.maxS - this.minS) / this.nrDivs;
 		this.w = (this.maxT - this.minT) / this.nrDivs;
 		this.initBuffers();
-
-		//terrain texture
-        this.terrain_text = new CGFappearance(scene);
-        this.terrain_text.setAmbient(1.0, 1.0, 1.0, 1);
-        this.terrain_text.setDiffuse(1, 1, 1, 1);
-        this.terrain_text.setSpecular(0.1, 0.1, 0.1, 1);
-        this.terrain_text.setShininess(10.0);
-        this.terrain_text.loadTexture('images/terrain.jpg');
-        this.terrain_text.setTextureWrap('REPEAT', 'REPEAT');
 	}
 	initBuffers() {
 		// Generate vertices, normals, and texCoords

@@ -50,10 +50,12 @@ class MyBirdWings extends CGFobject { //"Unit House" with height equal to 1
 
 
     enableNormalViz() {
-        this.body.enableNormalViz();
+        this.wing_plane.enableNormalViz();
+        this.wing_inclined.enableNormalViz();
     }
 
     disableNormalViz() {
-        this.body.disableNormalViz();
+        this.wing_plane.disableNormalViz();
+        this.wing_inclined.disableNormalViz();
     }
 }

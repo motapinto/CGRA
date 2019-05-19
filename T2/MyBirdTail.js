@@ -44,10 +44,14 @@ class MyBirdTail extends CGFobject { //"Unit House" with height equal to 1
 
 
     enableNormalViz() {
-        this.body.enableNormalViz();
+        this.tail_1.enableNormalViz();
+        this.tail_2.enableNormalViz();
+        this.tail_3.enableNormalViz();
     }
 
     disableNormalViz() {
-        this.body.disableNormalViz();
+        this.tail_1.disableNormalViz();
+        this.tail_2.disableNormalViz();
+        this.tail_3.disableNormalViz();
     }
 }

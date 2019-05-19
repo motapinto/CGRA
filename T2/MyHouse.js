@@ -76,68 +76,72 @@ class MyHouse extends CGFobject { //"Unit House" with height equal to 1
     }
 
     display() {
-        //door
         this.scene.pushMatrix();
-        this.door_text.apply();
-        this.scene.translate(1, 0, 3.01);
-        this.scene.scale(0.9, 1.6, 1);
-        this.door.display();
-        this.scene.popMatrix();
+        this.scene.translate(12, 3.6, -7);
+            //door
+            this.scene.pushMatrix();
+            this.door_text.apply();
+            this.scene.translate(1, 0, 3.01);
+            this.scene.scale(0.9, 1.6, 1);
+            this.door.display();
+            this.scene.popMatrix();
 
-        //window 
-        this.scene.pushMatrix();
-        this.window_text.apply();
-        this.scene.translate(3.01, 0.7, 1);
-        this.scene.rotate(-Math.PI/2, 0, 1, 0);
-        this.scene.scale(1, 1, 1);
-        this.window.display();
-        this.scene.popMatrix();
+            //window 
+            this.scene.pushMatrix();
+            this.window_text.apply();
+            this.scene.translate(3.01, 0.7, 1);
+            this.scene.rotate(-Math.PI/2, 0, 1, 0);
+            this.scene.scale(1, 1, 1);
+            this.window.display();
+            this.scene.popMatrix();
 
-        //walls
-        this.scene.pushMatrix();
-        this.scene.scale(3, 2, 3);
-        this.walls.display();
-        this.scene.popMatrix();
+            //walls
+            this.scene.pushMatrix();
+            this.scene.scale(3, 2, 3);
+            this.walls.display();
+            this.scene.popMatrix();
 
-        //roof
-        this.scene.pushMatrix();
-        this.roof_text.apply();
-        this.scene.translate(1.5, 2, 1.5);
-        this.scene.scale(3, 1, 3);
-        this.scene.rotate(Math.PI/4, 0, 1, 0);
-        this.roof.display();
-        this.scene.popMatrix();
+            //roof
+            this.scene.pushMatrix();
+            this.roof_text.apply();
+            this.scene.translate(1.5, 2, 1.5);
+            this.scene.scale(3, 1, 3);
+            this.scene.rotate(Math.PI/4, 0, 1, 0);
+            this.roof.display();
+            this.scene.popMatrix();
 
-        //pillar1
-        this.scene.pushMatrix();
-        this.pillar_text.apply();
-        this.scene.translate(3, 0, 0);
-        this.scene.scale(0.3, 2, 0.3);
-        this.pillar.display();
-        this.scene.popMatrix();
+            //pillar1
+            this.scene.pushMatrix();
+            this.pillar_text.apply();
+            this.scene.translate(3, 0, 0);
+            this.scene.scale(0.3, 2, 0.3);
+            this.pillar.display();
+            this.scene.popMatrix();
 
-        //pillar2
-        this.scene.pushMatrix();
-        this.pillar_text.apply();
-        this.scene.translate(3, 0, 3);
-        this.scene.scale(0.3, 2, 0.3);
-        this.pillar.display();
-        this.scene.popMatrix();
+            //pillar2
+            this.scene.pushMatrix();
+            this.pillar_text.apply();
+            this.scene.translate(3, 0, 3);
+            this.scene.scale(0.3, 2, 0.3);
+            this.pillar.display();
+            this.scene.popMatrix();
 
-        //pillar3
-        this.scene.pushMatrix();
-        this.pillar_text.apply();
-        this.scene.translate(0, 0, 0);
-        this.scene.scale(0.3, 2, 0.3);
-        this.pillar.display();
-        this.scene.popMatrix();
+            //pillar3
+            this.scene.pushMatrix();
+            this.pillar_text.apply();
+            this.scene.translate(0, 0, 0);
+            this.scene.scale(0.3, 2, 0.3);
+            this.pillar.display();
+            this.scene.popMatrix();
 
-        //pillar4
-        this.scene.pushMatrix();
-        this.pillar_text.apply();
-        this.scene.translate(0, 0, 3);
-        this.scene.scale(0.3, 2, 0.3);
-        this.pillar.display();
+            //pillar4
+            this.scene.pushMatrix();
+            this.pillar_text.apply();
+            this.scene.translate(0, 0, 3);
+            this.scene.scale(0.3, 2, 0.3);
+            this.pillar.display();
+            this.scene.popMatrix();
+
         this.scene.popMatrix();
     }
 
