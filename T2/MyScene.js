@@ -19,7 +19,6 @@ class MyScene extends CGFscene {
     init(application) {
         super.init(application);
         this.initCameras();
-        this.initLights();
 
         //Background color
         this.gl.clearColor(1, 1, 1, 1.0);
@@ -54,9 +53,10 @@ class MyScene extends CGFscene {
         this.bird = new MyBird(this, 'bird_face.jpg', 'escamas.jpg', 'wings.jpg', 'eyes.jpg', 'eyes.jpg', 'tail.jpg', 'legs.jpg', undefined);
         this.cubemap = new MyCubeMap(this, 60, this.selected_lights, 'day_cubemap.png', 'night_cubemap.png');
         this.house = new MyHouse(this, 4, 8, 'wall.jpg', 'roof.jpg', 'pillar.jpg', 'door.png', 'window.png');
-        this.terrain = new MyTerrain(this, 60, 'terrain.jpg', 'heightmap.png', 'altimetry.png'); //scene, z_length, x_length, texture, heightmap, altimetry
         this.lightning = new MyLightning(this);
         this.cloud = new MyCloud(this, 20, 2, 10);
+        this.river = new MyRiver(this, 5, 'waterTex.jpg', 'waterMap.jpg');
+        this.terrain = new MyTerrain(this, 60, 'terrain.jpg', 'heightmap.png', 'altimetry.png'); //scene, z_length, x_length, texture, heightmap, altimetry
 
         //Lights var's
         this.lights = [this.lights[0], this.lights[1], this.lights[2]];
@@ -68,6 +68,8 @@ class MyScene extends CGFscene {
         this.total_time = 0;
         this.update_period = 50; // can be changed
         this.setUpdatePeriod(this.update_period);
+
+        this.initLights();
     }
 
     initCameras() {
@@ -95,12 +97,12 @@ class MyScene extends CGFscene {
         this.lights[1].setVisible(false);
         this.lights[1].update();
 
-        this.night2_color = this.hexToRgbA('#aa5a17');
-        this.lights[2].setPosition(8, 2.5, 10, 1.0);
-        this.lights[2].setDiffuse(this.night2_color[0], this.night2_color[1], this.night2_color[2], 1.0);
-        this.lights[2].setSpecular(this.night2_color[0], this.night2_color[1], this.night2_color[2], 1.0);
+        let lightning_color = this.hexToRgbA('#ffffff');
+        this.lights[2].setAmbient(lightning_color[0], lightning_color[1], lightning_color[2], 1.0);
+        this.lights[2].setDiffuse(lightning_color[0], lightning_color[1], lightning_color[2], 1.0);
+        this.lights[2].setSpecular(lightning_color[0], lightning_color[1], lightning_color[2], 1.0);
         this.lights[2].setLinearAttenuation(0.1);
-        this.lights[2].enable();
+        this.lights[2].disable();
         this.lights[2].setVisible(false);
         this.lights[2].update();
     }
@@ -133,8 +135,6 @@ class MyScene extends CGFscene {
         this.last_time = t; 
         //store total_time 
         this.total_time += this.delta_time;
-        if(t%4)
-            console.log("delta_time: " + this.delta_time);
         //check for keys input
         this.checkKeys(t); 
         //Updates birds coordinates 
@@ -153,6 +153,7 @@ class MyScene extends CGFscene {
         if(this.lightning.draw) {
             this.lightning.update(t);
         }
+        this.river.update(t);
     }
 
     checkKeys(t) {
@@ -183,6 +184,7 @@ class MyScene extends CGFscene {
             if(this.bird.branch == undefined) {
                 this.bird.to_pick = true;
             }
+    
             else {
                 this.bird.to_drop = true;
             }
@@ -210,6 +212,8 @@ class MyScene extends CGFscene {
         }
         else
             this.lights[0].update();
+        
+        this.lights[2].update();
     }
 
     display() {
@@ -224,19 +228,17 @@ class MyScene extends CGFscene {
         this.setDefaultAppearance();
 
         //Lights management
-        for(var i = 0; i <= 2; i++) {
+        for(var i = 0; i < 2; i++) {
             if(i == this.selected_lights)
                 this.lights[i].enable();
             else
                 this.lights[i].disable();
             
-             if(this.selected_lights == 1) {
-                this.lights[2].enable();
-                this.cubemap.day_value = 1; 
-             }
+             if(this.selected_lights == 1) 
+                this.cubemap.day_value = 1;             
              else 
                 this.cubemap.day_value = 0;
-
+            
             this.lights[i].update();
        }
 
@@ -285,11 +287,21 @@ class MyScene extends CGFscene {
         
         //Displays cubemap
         this.pushMatrix();
-        this.translate(-30, 0, -30);
+            this.translate(-30, 0, -30);
             //this.cubemap.display();
         this.popMatrix();
 
-        this.house.display();
+        this.pushMatrix();
+            this.translate(12, 0, -7);
+            this.house.display();
+        this.popMatrix();
+
+        this.pushMatrix();
+            this.scale(50, 1, 50)
+            this.translate(0, -3.1, 0);
+            this.rotate(-Math.PI/2, 1, 0, 0);
+            this.river.display();
+        this.popMatrix();
 
         //Draws branch when it is not with the bird
         if(this.bird.branch == undefined) {
@@ -302,6 +314,7 @@ class MyScene extends CGFscene {
         
         //Draws a cloud and moves it accordingly to it's move method
         this.pushMatrix();
+            this.lights[2].setPosition(this.cloud.x + this.cloud.size/2, this.cloud.y-this.cloud.size/2, this.cloud.z + this.cloud.size/2 - 1, 1.0);
             this.translate(this.cloud.x, this.cloud.y, this.cloud.z);
             this.cloud.display();
         this.popMatrix();
@@ -309,12 +322,18 @@ class MyScene extends CGFscene {
         //Lightning display based on cloud position
         if(this.lightning.draw) {
             this.pushMatrix();
+                this.lights[2].enable();
+                this.lights[2].update();
                 this.material.apply();
                 this.translate(this.cloud.x + this.cloud.size/2, this.cloud.y, this.cloud.z + this.cloud.size/2);
                 this.rotate(Math.PI, 1, 0, 0);
                 this.scale(1, 0.5, 1);
                 this.lightning.display();
             this.popMatrix();
+        }
+        else {
+            this.lights[2].disable();
+            this.lights[2].update();
         }
         // ---- END Primitive drawing section
     }

@@ -122,11 +122,11 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     //Changes bird speed
     accelerate(key) {
         if(key == "W") {
-            this.speed += this.scene.speedFactor * (this.scene.delta_time/1000);
+            this.speed += this.scene.speedFactor * 2 * (this.scene.delta_time/1000);
         }
 
         else if(key == "S") {
-            this.speed -= this.scene.speedFactor * 1.5 * (this.scene.delta_time/1000);
+            this.speed -= this.scene.speedFactor * 3 * (this.scene.delta_time/1000);
         }
 
         else {
@@ -135,13 +135,13 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     }
 
     //Changes direction in which the bird is facing
-    turn(key) {            
+    turn(key) {          
         if(key == "A") {
-            this.direction_angle -= this.scene.speedFactor * this.angle_change;
+            this.direction_angle = (this.direction_angle - (this.scene.speedFactor * this.angle_change)) % (Math.PI*2);
         }
 
         else if(key == "D") {
-            this.direction_angle += this.scene.speedFactor * this.angle_change;
+            this.direction_angle = (this.direction_angle + (this.scene.speedFactor * this.angle_change)) % (Math.PI*2);
         }
 
         else {
@@ -179,7 +179,7 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         }
     }
 
-    //Descend to pick tree bracnh (1 second animation)
+    //Descend to pick tree branch (1 second animation)
     descend() {
         let speed_counter = 0;
         //Calculates speed counter based on delta_time(seconds passed since last call)
@@ -196,27 +196,18 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     }
 
     //Changes y coordinate based on movement (all movements must be completed in 1 second)
-    changeY(t) {
-        var aux = (1000 / this.scene.update_period); // numero iter
-        //changes bird y to go up and down constantly -> animation must have duration of 1 second
-        //var y_counter = 0;
-        //y_counter = (this.delta_time/1000) * Math.PI;
-
-        
+    changeY(t) {        
         if ((this.to_pick || this.to_drop) && this.descending) {
             this.descend();
             this.checkBoundaries();
         }
         
-        else if ((this.to_pick || this.to_drop) && this.ascending) {
+        else if ((this.to_pick || !this.to_drop) && this.ascending) {
             this.ascend();
             this.checkBoundaries();
         }
 
         else {
-            //this.y += Math.sin(y_counter);
-            //console.log("math_sin: " + Math.sin(y_counter));
-            //console.log("y: " + this.y);
             this.y = this.init_y + Math.sin(t/1000 * Math.PI);
         }
     }
@@ -224,31 +215,31 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     //Check if updated coordinates are legal - turn same angle as the one that does with the normal
     checkBoundaries() {
         let angle_aux;
-
-        if(this.x >= 30) {
+        //Turns only when is facing x=30 axis
+        if(this.x >= 30 && Math.cos(this.direction_angle) > 0) {
             angle_aux = Math.PI/2 - this.direction_angle; 
             this.turn(2*angle_aux);
         }
-
-        else if(this.x <= -30) {
+        //Turns only when is facing x=-30 axis
+        else if(this.x <= -30 && Math.cos(this.direction_angle) < 0) {
             angle_aux = this.direction_angle - Math.PI;
             angle_aux = Math.PI/2 - angle_aux;
             this.turn(2*angle_aux);
         }
-
-        if(this.z >= 30) {
+        //Turns only when is facing z=30 axis
+        if(this.z >= 30 && Math.sin(this.direction_angle) > 0) {
             angle_aux = this.direction_angle - Math.PI/2;
             angle_aux = Math.PI/2 - angle_aux;
             this.turn(2*angle_aux);
         }
-        
-        else if(this.z <= -30) {
+        //Turns only when is facing z=-30 axis
+        else if(this.z <= -30 && Math.sin(this.direction_angle) < 0) {
             angle_aux = this.direction_angle - Math.PI/2;
             angle_aux = Math.PI/2 - angle_aux;
             this.turn(2*angle_aux);
         } 
 
-        if(this.to_pick || this.to_drop) {
+        if(this.to_pick || this.to_drop || !this.to_drop) {
             if(this.y <= 0) {
                 this.y = 0;
                 //stops descending
@@ -271,28 +262,21 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     //Check if updated speed is legal 
     checkSpeed() {
         if(this.speed > this.max_speed) {
-            console.log(this.speed);
             this.speed = this.max_speed;
         }
         else if(this.speed < this.min_speed) {
-            console.log(this.speed);
             this.speed = this.min_speed;
         }
     }
 
     //Updates birds coordinates 
     update(t) {
-        if(this.speed == this.last_speed) {
-            this.accelerate(null);
-        }
-        //Stores current speed
-        let speed_init = this.speed ;
+        //Air resistance
+        this.accelerate(); 
         //Update time var's
         this.delta_time = t - this.last_time;
         this.total_time += this.delta_time;
         this.last_time = t;
-        //Changes speed based on speedFactor 
-        this.speed *= this.scene.speedFactor;
         //Checks if speed value is legal
         this.checkSpeed();
         //change y depending on the movement(constant, descending, ascending)
@@ -306,7 +290,6 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         //check if updated coordinates are legal
         this.checkBoundaries(); 
         //Stores speed before update method
-        this.speed = speed_init;
         this.last_speed = this.speed;
     }
 

@@ -18,7 +18,7 @@ class MyBranch extends CGFobject {
 
         //Position parameters
         this.init_x = 5;
-        this.init_y = 0;
+        this.init_y = radius;
         this.init_z = 10;
 
         this.cilinder = new MyCylinder(scene, slices, height, radius);

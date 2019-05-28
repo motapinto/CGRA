@@ -30,16 +30,6 @@ class MyTerrain extends CGFobject {
 		this.shadersDiv = document.getElementById("shaders");
 		this.vShaderDiv = document.getElementById("vshader");
 		this.fShaderDiv = document.getElementById("fshader");
-		// force initial setup of shader code panels
-		this.onShaderCodeVizChanged(this.showShaderCode);
-	}
-
-	// Show/hide shader code
-	onShaderCodeVizChanged(v) {
-		if (v)
-			this.shadersDiv.style.display = "block";
-		else
-			this.shadersDiv.style.display = "none";
 	}
 
 	display() {

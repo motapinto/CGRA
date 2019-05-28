@@ -20,8 +20,8 @@ class MyBirdWings extends CGFobject {
 
     //Wings method that rotates wings
     update(t) {
-        var aux = 10000 / (2*this.scene.update_period);
-        this.rot_wings = this.scene.bird.speed/10 + Math.sin((t/1000 * Math.PI)+Math.PI)/2;
+        let speed_factor = (this.scene.bird.speed / this.scene.bird.max_speed) / 2;
+        this.rot_wings = Math.sin(((t/1000 * Math.PI)+Math.PI))/2;
     }
 
     display() {            
