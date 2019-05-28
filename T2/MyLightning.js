@@ -2,7 +2,6 @@
 * MyLightning
 * @constructor
 * @param scene - Reference to MyScene 
-* @param LSsystem - Reference to MyLSystem 
 */
 
 class MyLightning extends MyLSystem {
@@ -10,73 +9,73 @@ class MyLightning extends MyLSystem {
         super(scene);
         this.scene = scene;
 
-        //auxiliar variables
-        this.init_time = 0; 
-        this.delta_time = 0;
+        //Auxiliary variables for incremental design 
         this.depth = 0;
+        this.draw = false;
+        this.total_time = 0;
 
-        //Modelação Procedimental
+        //Procedural Modeling
         this.axiom = "X";
         this.ruleF = "FF";
         this.ruleX = "F[-X][X]F[-X]+FX";
-        this.ruleX1 = "F[-X][X]F[-X]+X" //produção estotástica -> gera lightning diferente a cada generate
+        this.ruleX1 = "F[-X][-X]F[+X]+X"; //produção estocástica -> gera lightning diferente a cada generate
         this.LSangle = 25.0;
         this.LSiter = 3;
         this.LSscaleFactor = 0.5;
 
-        //cria o lexico da gramática
-        this.initGrammar()
-
-        //inicializada função generate de MyLSystem
-        //generate(_axiom, _productions, _angle, _iterations, _scale){
+        //generate(_axiom, _productions, _angle, _iterations, _scale) [call to function in LSystem]
         this.doGenerate = function () {
             this.generate(
                 this.axiom,
                 {
                     "F": [ this.ruleF ],
-                    "X": [  this.rule ]
+                    "X": [  this.ruleX, this.ruleX1 ]
                 }, 
                 this.LSangle,
                 this.LSiter,
                 this.LSscaleFactor
             );
+
         }
 
-        this.doGenerate(); //gera o novo lightning estocastico
+        //Do initial generate
+        this.doGenerate();
+    }
 
-        this.initBuffers();
+    init(){
+        //Creates grammar lexicon
+        this.initGrammar("lightning");
     }
-/*
- *  Crie um método update de MyLightning que em função do tempo decorrido desde o início do
- *  relâmpago (ver ponto seguinte) e do comprimento da sequência defina o número de segmentos
- *  a serem mostrados (depth). ???
- */
-    update(t) {        
-        this.depth ++; // a cada chamada a função update do MyLightning depth aumenta e mostra mais um segmento (ver ciclo for em display)
+
+    update(t) { 
+        //Makes sure after 1 second is passed the lightning stops being drawn
+        if(t - this.init_time >= 1000) {
+            this.draw = false;
+        }
+        //Number of segments to be displayed in current update call (update is called 1000 / this.scene.update_period per second)
+        var depth_counter = (this.scene.delta_time / 1000) * this.axiom.length; 
+        //More segments of lightning to be displayed
+        this.depth += Math.round(depth_counter);
+        //Checks if depth is legal
+        if(this.depth >= this.axiom.length ) {
+            this.draw = false;
+        }
     }
-/*
- *  Crie um método startAnimation(t) na classe MyLightning que recrie 
- *  o relâmpago (invocando o método iterate() de MyLSystem), 
- *  armazene o tempo de início da animação e inicialize depth.
- */
+
     startAnimation(t) {
-        this.init_time = t;
+        //Initialize depth
         this.depth = 0;
-        this.LSsystem.iterate();
+        //Saves initial time
+        this.init_time = t;
+        //Calls iterate method from MyLSystem
+        this.iterate();
+        //Starts drawing
+        this.scene.lightning.draw = true;
     }
 
-/*
- *  Crie a função display() em MyLightning, que poderá ser copiado de MyLSystem. Altere esta
- *  função para que ao processar a sequência, só seja feito display das primitivas caso a
- */ 
-    display(){
-        this.update();
-        
-        this.scene.pushMatrix();
-        this.scene.scale(this.scale, this.scale, this.scale);
-
-        // percorre a cadeia de caracteres -> até this.scale
-        for (var i=0; i < this.depth && i < this.axiom.length; ++i){
+    display(){    
+        // percorre a cadeia de caracteres 
+        for (let i = 0; i < this.depth && i < this.axiom.length; ++i){
 
             // verifica se sao caracteres especiais
             switch(this.axiom[i]){
@@ -128,8 +127,6 @@ class MyLightning extends MyLSystem {
                     break;
             }
         }
-
-        this.scene.popMatrix();
     }
 }
 

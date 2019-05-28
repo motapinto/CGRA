@@ -45,6 +45,6 @@ class MyLSPlant extends MyLSystem {
 
     init(){
         // cria o lexico da gramática
-        this.initGrammar()
+        this.initGrammar("plant")
     }
 }

@@ -4,58 +4,51 @@
 * @param scene - Reference to MyScene object
 */
 
-/*A casa deverá ter até 3 unidades de lado, colocada a menos de 8 unidades de distância da origem (de
-forma a ser vísivel com a inicialização da cena).*/
-
-
-class MyBirdWings extends CGFobject { //"Unit House" with height equal to 1
+class MyBirdWings extends CGFobject { 
     constructor(scene) {
         super(scene);
+
+        //Attributes
         this.scene = scene;
-
-        this.wing_plane = new MyQuad(scene);
-        this.wing_inclined = new MyTriangle(scene);
+        this.rot_wings = 0;
+        this.rot_wings_ang = (20*Math.PI)/180;
+        
+        //Objects
+        this.wing_left = new MyWings(scene);
+        this.wing_right = new MyWings(scene);
     }
 
-    display() {
-
-            //wing_plane left
-            this.scene.pushMatrix();
-            this.scene.translate(0.2, 1, 0.2);
-            this.scene.rotate(-0.4*Math.PI, 1, 0, 0);
-            this.wing_plane.display();
-            this.scene.popMatrix();
-
-            //wing_plane right
-            this.scene.pushMatrix();
-            this.scene.translate(0.2, 1, 0.8);
-            this.scene.rotate(0.4*Math.PI, 1, 0, 0);
-            this.wing_plane.display();
-            this.scene.popMatrix();
-
-            //wing_inclined left
-            this.scene.pushMatrix();
-            this.scene.translate(0.2, 1.31, -0.74);
-            this.scene.rotate(-Math.PI/2, 1, 0, 0);
-            this.wing_inclined.display();
-            this.scene.popMatrix();
-
-            //wing_inclined right
-            this.scene.pushMatrix();
-            this.scene.translate(0.2, 1.31, 1.75);
-            this.scene.rotate(Math.PI/2, 1, 0, 0);
-            this.wing_inclined.display();
-            this.scene.popMatrix();
+    //Wings method that rotates wings
+    update(t) {
+        var aux = 10000 / (2*this.scene.update_period);
+        this.rot_wings = this.scene.bird.speed/10 + Math.sin((t/1000 * Math.PI)+Math.PI)/2;
     }
 
+    display() {            
+        this.scene.pushMatrix();
+            this.scene.translate(0.85, 1.25, 0.8);
+            this.scene.rotate(Math.PI/8, 0, 0, 1);
+            this.scene.rotate(-Math.PI/2, 0, 1, 0);
+            this.scene.rotate(this.rot_wings, 0, 0, 1);
+            this.wing_left.display();
+        this.scene.popMatrix();
+        
+        this.scene.pushMatrix();
+            this.scene.translate(0, 1, 0.15);
+            this.scene.rotate(Math.PI/8, 0, 0, 1);
+            this.scene.rotate(Math.PI/2, 0, 1, 0);
+            this.scene.rotate(this.rot_wings, 0, 0, 1);
+            this.wing_right.display();
+        this.scene.popMatrix();
+    }
 
     enableNormalViz() {
-        this.wing_plane.enableNormalViz();
-        this.wing_inclined.enableNormalViz();
+        this.wing_left.enableNormalViz();
+        this.wing_right.enableNormalViz();
     }
 
     disableNormalViz() {
-        this.wing_plane.disableNormalViz();
-        this.wing_inclined.disableNormalViz();
+        this.wing_left.disableNormalViz();
+        this.wing_right.disableNormalViz();
     }
 }

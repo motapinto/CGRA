@@ -24,7 +24,8 @@ class MyTerrain extends CGFobject {
 		this.terrain_altimetry = new CGFtexture(this.scene, 'images/' + this.altimetry);
 
 		// additional texture will have to be bound to texture unit 1 later, when using the shader, with "this.texture2.bind(1);"
-        this.terrainShader.setUniformsValues({ uSampler2: 1 , uSampler3: 2});
+		this.terrainShader.setUniformsValues({ uSampler2: 1 , uSampler3: 2});
+		this.terrainShader.setUniformsValues({normScale: 60});
 		// shader code panels references
 		this.shadersDiv = document.getElementById("shaders");
 		this.vShaderDiv = document.getElementById("vshader");
@@ -41,10 +42,6 @@ class MyTerrain extends CGFobject {
 			this.shadersDiv.style.display = "none";
 	}
 
-	update(t) {
-        this.terrainShader.setUniformsValues({ timeFactor: t / 100 % 1000 });
-	}
-
 	display() {
 		this.scene.setActiveShader(this.terrainShader);
 
@@ -55,9 +52,8 @@ class MyTerrain extends CGFobject {
 		this.terrain_map.bind(1);
 		this.terrain_altimetry.bind(2);
 
-
         this.scene.pushMatrix();
-        this.terrain.display();
+        	this.terrain.display();
 		this.scene.popMatrix();
 		
 		this.scene.setActiveShader(this.scene.defaultShader);

@@ -5,18 +5,15 @@
 
 const FRAME_RATE = 60;
 
-
 class MyScene extends CGFscene {
     constructor() {
         super();
 
-        //this.wireframe = false;
-		//this.showShaderCode = false;
+        this.displayNormals = false;
         this.selected_lights = 0;
         this.displayAxis = true;
-        this.displayNormals = false;
-        this.enable_textures = true;
         this.scaleFactor = 1.0;
+        this.speedFactor = 1.0;
     }
 
     init(application) {
@@ -25,42 +22,56 @@ class MyScene extends CGFscene {
         this.initLights();
 
         //Background color
-        this.gl.clearColor(47/255, 136/255, 213/255, 1.0);
+        this.gl.clearColor(1, 1, 1, 1.0);
         this.gl.clearDepth(100.0);
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.enable(this.gl.CULL_FACE);
         this.gl.depthFunc(this.gl.LEQUAL);
         this.enableTextures(true);
 
-        //generate x and z coords for LSPLants
-        this.plant_x = [];
-        this.plant_z = [];
-        for(var i = 0 ; i < 5; i++) {
-            this.plant_x[i] = Math.floor((Math.random() * -12) -8); //between 1-10
-            this.plant_z[i] = Math.floor((Math.random() * -7) + -0); //between 1-10
+        //yellow material -> for lightning
+        var yellow = this.hexToRgbA('#FFFF00');
+        this.material = new CGFappearance(this);
+        this.material.setAmbient(yellow[0], yellow[1], yellow[2], 1.0);
+        this.material.setDiffuse(yellow[0], yellow[1], yellow[2], 1.0);
+        this.material.setSpecular(yellow[0], yellow[1], yellow[2], 1.0);
+		this.material.setShininess(10.0);
+
+        //LSPlants
+        this.LSPlant = new MyLSPlant(this);
+        this.plants_axiom = [];
+        this.num_plants = 6;
+
+        for(let i = 0 ; i < this.num_plants; i++) {
+            this.plants_axiom[i] = this.LSPlant.axiom;
+            this.LSPlant.axiom = "X";
+            this.LSPlant.iterate();
         }
-        
+
         //Initialize scene objects
         this.axis = new CGFaxis(this);
-        this.bird = new MyBird(this, 'bird_face.jpg', 'escamas.jpg', 'wings.jpg', 'eyes.jpg', 'eyes.jpg', 'tail.jpg', 'legs.jpg');
-        this.cubemap = new MyCubeMap(this, this.selected_lights, 'day_cubemap.png', 'night_cubemap.png');
+        this.tree_branch = new MyBranch(this, 20, 2, 0.15);
+        this.bird = new MyBird(this, 'bird_face.jpg', 'escamas.jpg', 'wings.jpg', 'eyes.jpg', 'eyes.jpg', 'tail.jpg', 'legs.jpg', undefined);
+        this.cubemap = new MyCubeMap(this, 60, this.selected_lights, 'day_cubemap.png', 'night_cubemap.png');
         this.house = new MyHouse(this, 4, 8, 'wall.jpg', 'roof.jpg', 'pillar.jpg', 'door.png', 'window.png');
         this.terrain = new MyTerrain(this, 60, 'terrain.jpg', 'heightmap.png', 'altimetry.png'); //scene, z_length, x_length, texture, heightmap, altimetry
         this.lightning = new MyLightning(this);
-        this.LSPlant = new MyLSPlant(this);
+        this.cloud = new MyCloud(this, 20, 2, 10);
 
-        //Lights
+        //Lights var's
         this.lights = [this.lights[0], this.lights[1], this.lights[2]];
-        this.lightsIDs = { 'Day': 0, 'Night': 1};    
+        this.lightsIDs = { 'Day': 0, 'Night': 1};  
         
-        //Time
-        this.last_time = 0;
-        this.setUpdatePeriod(FRAME_RATE);
-
+        //Time var's
+        this.last_time = Date.now(); //num of ms
+        this.delta_time = 0;
+        this.total_time = 0;
+        this.update_period = 50; // can be changed
+        this.setUpdatePeriod(this.update_period);
     }
 
     initCameras() {
-        this.camera = new CGFcamera(1, 1, 100, vec3.fromValues(25, 15, 29), vec3.fromValues(12, 7, 12));
+        this.camera = new CGFcamera(1, 1, 200, vec3.fromValues(40, 80, 40), vec3.fromValues(12, 7, 12));
     }
 
     initLights() {
@@ -94,8 +105,7 @@ class MyScene extends CGFscene {
         this.lights[2].update();
     }
     
-    hexToRgbA(hex)
-    {
+    hexToRgbA(hex) {
         var ret;
         //either we receive a html/css color or a RGB vector
         if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
@@ -117,60 +127,74 @@ class MyScene extends CGFscene {
     }
 
     update(t){
-        var delta_time = t - this.last_time; //deltaT
-        this.last_time = t; //current time
-        this.checkKeys(delta_time);
-
-        //onde faco esta animacao(aqui ou no display do bird?)
-        //this.bird.animate(delta_time); //2) animation without keys input
+        //deltaT in each call to update method
+        this.delta_time = t - this.last_time;
+        //updates last_time to current time
+        this.last_time = t; 
+        //store total_time 
+        this.total_time += this.delta_time;
+        if(t%4)
+            console.log("delta_time: " + this.delta_time);
+        //check for keys input
+        this.checkKeys(t); 
+        //Updates birds coordinates 
+        this.bird.update(t);
+        //tries to pick a tree branch
+        if(this.bird.to_pick) {
+            this.bird.pick();
+        }     
+        //tries to drop tree branch
+        if(this.bird.to_drop) {
+            this.bird.drop();
+        }
+        //Moves cloud
+        this.cloud.move();   
+        //updates Lightning depth
+        if(this.lightning.draw) {
+            this.lightning.update(t);
+        }
     }
 
-    checkKeys(delta_time) {
-        var text="Keys pressed: ";
-        var keysPressed = false;
-
+    checkKeys(t) {
         // Check for key codes e.g. in https://keycode.info/
 
         if (this.gui.isKeyPressed("KeyW")) {
-            text += " W ";
-            keysPressed = true;
-            this.bird.accelerate("W", delta_time);
+            this.bird.accelerate("W");
         }
 
         else if (this.gui.isKeyPressed("KeyS")) {
-            text += " S ";
-            keysPressed = true;
-            this.bird.accelerate("S", delta_time);
+            this.bird.accelerate("S");
         } 
 
         if (this.gui.isKeyPressed("KeyA")) {
-            text += " A ";
-            keysPressed = true;
             this.bird.turn("A");
         } 
 
         else if (this.gui.isKeyPressed("KeyD")) {
-            text += " D ";
-            keysPressed = true;
             this.bird.turn("D");
         } 
 
-        if(this.gui.isKeyPressed("KeyL")) {
-            text += " L ";
-            keysPressed = true;
-            this.lightning.startAnimation();
+        if (this.gui.isKeyPressed("KeyR")) {
+            this.bird.init();
+        } 
+
+        if(this.gui.isKeyPressed("KeyP")) {
+            //"activate" function bird.pick() or bird.drop() both called in update of MyScene
+            if(this.bird.branch == undefined) {
+                this.bird.to_pick = true;
+            }
+            else {
+                this.bird.to_drop = true;
+            }
+            //starts descending
+            this.bird.descending = true;
         }
 
-        if(this.gui.isKeyPressed("")) {
-            keysPressed = false;
-            this.bird.accelerate("", delta_time);
+        if(!this.lightning.draw && this.gui.isKeyPressed("KeyL")) {
+            this.lightning.startAnimation(t);
+            this.lightning.axiom = "X";
+            this.lightning.iterate();
         }
-
-        if (keysPressed) {
-            console.log(text);
-        }
-        
-        this.bird.update(delta_time);
     }
 
     setDefaultAppearance() {
@@ -194,10 +218,8 @@ class MyScene extends CGFscene {
         this.updateProjectionMatrix();
         this.loadIdentity();
         this.applyViewMatrix();
-        this.scale(this.scaleFactor,this.scaleFactor,this.scaleFactor);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-
         //Apply default appearance
         this.setDefaultAppearance();
 
@@ -218,55 +240,82 @@ class MyScene extends CGFscene {
             this.lights[i].update();
        }
 
-        // Draw axis
+        // Show axis checkbox
         if(this.displayAxis) {
             this.axis.display();
         }
         
-
+        //Show normals checkbox
         if (this.displayNormals) {
             this.house.enableNormalViz();
             this.bird.enableNormalViz();
         }
-
         else {
             this.house.disableNormalViz();
             this.bird.disableNormalViz();
         }
 
-        if(this.enable_textures) {
-            this.enableTextures(true);
+        //show LSPlants 
+        for(var i = 0 ; i < 2; i++) {
+            for(var j = 0; j < 3; j++) {
+                this.pushMatrix();
+                    this.translate(4*i-18, 0, 3*j-5-2*i);
+                    this.scale(2, 2, 2);
+                    this.LSPlant.axiom = this.plants_axiom[i+j] ;
+                    this.LSPlant.display();
+                this.popMatrix();
+            }
         }
+        
+        //Show bird and changes to bird coordinates based on movement methods
+        this.pushMatrix();
+            this.translate(this.bird.x, this.bird.y , this.bird.z);
+            this.rotate(-this.bird.direction_angle, 0, 1, 0);
+            this.scale(0.8, 0.8, 0.8);
+            this.scale(this.scaleFactor,this.scaleFactor,this.scaleFactor);
+            this.bird.display();
+        this.popMatrix();
 
-        else {
-            this.enableTextures(false);
-        }
+        //Show terrain
+        this.pushMatrix();
+            this.translate(0, -4.7, 0);
+            this.rotate(-Math.PI/2, 1, 0, 0);
+            this.terrain.display();
+        this.popMatrix();
+        
+        //Displays cubemap
+        this.pushMatrix();
+        this.translate(-30, 0, -30);
+            //this.cubemap.display();
+        this.popMatrix();
 
-        //LSPlants
-        for(var i = 0 ; i < 5; i++) {
+        this.house.display();
+
+        //Draws branch when it is not with the bird
+        if(this.bird.branch == undefined) {
             this.pushMatrix();
-            this.translate(this.plant_x[i], 3.6, this.plant_z[i]);
-            this.scale(2, 2, 2);
-            //this.LSPlant.doGenerate(); //
-            this.LSPlant.display();
+                this.translate(this.tree_branch.x, this.tree_branch.y, this.tree_branch.z);
+                this.rotate(-Math.PI/2, 1, 0, 0);
+                this.tree_branch.display();
             this.popMatrix();
         }
         
+        //Draws a cloud and moves it accordingly to it's move method
         this.pushMatrix();
-        this.translate(0, 5, 0);
-        this.scale(0.7, 0.7, 0.7);
-        this.bird.display();
+            this.translate(this.cloud.x, this.cloud.y, this.cloud.z);
+            this.cloud.display();
         this.popMatrix();
-        
-        this.cubemap.display();
-        this.house.display();
-        this.lightning.display();
 
-        this.pushMatrix();
-		this.rotate(-Math.PI/2, 1, 0, 0);
-		this.scale(60, 60, 60);
-		this.terrain.display();
-		this.popMatrix();
+        //Lightning display based on cloud position
+        if(this.lightning.draw) {
+            this.pushMatrix();
+                this.material.apply();
+                this.translate(this.cloud.x + this.cloud.size/2, this.cloud.y, this.cloud.z + this.cloud.size/2);
+                this.rotate(Math.PI, 1, 0, 0);
+                this.scale(1, 0.5, 1);
+                this.lightning.display();
+            this.popMatrix();
+        }
         // ---- END Primitive drawing section
     }
 }

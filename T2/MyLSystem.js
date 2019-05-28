@@ -14,12 +14,21 @@ class MyLSystem extends CGFobject {
         this.initGrammar()
     }
 
-   // cria o lexico da gramática (2 quads) ->NAO ESQECER METER QUADS RETANGULARES
-   initGrammar(){
-    this.grammar = {
-        "F": new MyQuad(this.scene),
-        "X": new MyQuad(this.scene)
-    };
+   // cria o lexico da gramática 
+   initGrammar(obj){
+       if(obj == "plant") {
+           this.grammar = {
+            "F": new MyBranch(this.scene, 4, 1, 1),
+            "X": new MyLeaf(this.scene)
+        };
+        
+       }
+       else if (obj == "lightning") {
+           this.grammar = {
+               "F": new MyRectangle(this.scene, "lightning"),
+               "X": new MyRectangle(this.scene, "lightning")
+           };
+       }
 }
 
     // gera o sistema L com os parametros atuais da cena
@@ -63,18 +72,16 @@ class MyLSystem extends CGFobject {
 
             this.axiom = newString;
         }
-        console.log("Final: "+this.axiom);
-        console.log("(length: "+this.axiom.length+")");
+        console.log("length: " + this.axiom.length);
+
     }
 
     display(){
         this.scene.pushMatrix();
         this.scene.scale(this.scale, this.scale, this.scale);
 
-        var i;
-
         // percorre a cadeia de caracteres
-        for (i=0; i<this.axiom.length; ++i){
+        for (let i=0; i<this.axiom.length; ++i){
 
             // verifica se sao caracteres especiais
             switch(this.axiom[i]){

@@ -11,14 +11,12 @@ class MyInterface extends CGFinterface
 		this.gui = new dat.GUI();
 		var obj = this;
 
-		this.initKeys();
-
-		this.gui.add(this.scene, 'scaleFactor',0.1, 5.0).name('Scale');
-		//this.gui.add(this.scene, 'wireframe').onChange(this.scene.onWireframeChanged.bind(this.scene));
-		//this.gui.add(this.scene, 'showShaderCode').name('Show Shader Code').onChange(this.scene.onShaderCodeVizChanged.bind(this.scene));
+        this.initKeys();
+        
+        this.gui.add(this.scene, 'scaleFactor',0.5, 3.0).name('Scale');
+        this.gui.add(this.scene, 'speedFactor',0.1, 3.0).name('Speed');
 		this.gui.add(this.scene, 'displayNormals').name("Display normals"); //checkbox
 		this.gui.add(this.scene, 'displayAxis').name("Display axis"); //checkbox
-		this.gui.add(this.scene, 'enable_textures').name("Disable textures"); //checkbox
 		this.gui.add(this.scene, 'selected_lights', this.scene.lightsIDs).name('Selected Light').onChange(this.scene.updateDayLight.bind(this.scene)); //checkbox with bind propriety
 
 		return true;

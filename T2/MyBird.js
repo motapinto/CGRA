@@ -5,7 +5,7 @@
 */
 
 class MyBird extends CGFobject { //"Unit House" with height equal to 1
-    constructor(scene, face_text, body_text, wings_text, nose_text, eyes_text, tail_text, legs_text) {
+    constructor(scene, face_text, body_text, wings_text, nose_text, eyes_text, tail_text, legs_text, branch) {
         super(scene);
         
         this.scene = scene;
@@ -24,23 +24,34 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         this.eyes = new MyUnitCubeQuad(scene, eyes_text, body_text, body_text);
         this.tail = new MyBirdTail(scene, 4);
         this.legs = new MyBirdLegs(scene, 0.5);
+        this.branch = branch;
 
-        //Initial position
-        this.x = -20;
-        this.y = 10;
-        this.z = 10;
-        //speed parameters
-        this.speed = 0;
-        this.min_speed = -0.04;
-        this.max_speed = 0.04;
-        this.acceleration = 0.0000005;
-        //direction parameters
-        this.direction_angle = 0;
-        this.turn_speed = 0.2; //constant
-        this.ar_resistance = 0.2; //???how to use real physics model
-        this.angle_change = (5*Math.PI) / 180; //5º (degrees)
-        this.down = false;
+        //Initial position coordinates
+        this.init_x = -20;
+        this.init_y = 15;
+        this.init_z = 10;
 
+        //Initial movement parameters
+        this.init_speed = 0;
+        this.init_y_speed = 0;
+        //Speed limits
+        this.min_speed = 0; 
+        this.max_speed = 5;
+
+        //Time var's
+        this.delta_time = 0;
+        this.init_time = 0;
+        this.total_time = 0;
+
+        //Initial Directional parameter
+        this.init_direction_angle = 0;
+        //Directional parameters
+        this.angle_change = (10*Math.PI) / 180; //6º (degrees)
+        
+        //Inititalize all variables
+        this.init();
+        
+        //Set all initial textures
         this.setTextures();
     }
 
@@ -70,7 +81,7 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         this.wings_material.loadTexture('images/' + this.wings_text);
         this.wings_material.setTextureWrap('REPEAT', 'REPEAT');
 
-        var nose_color = this.hexToRgbA('#F0CB11');
+        var nose_color = this.scene.hexToRgbA('#F0CB11');
         this.nose_material = new CGFappearance(this.scene);
         this.nose_material.setAmbient(nose_color[0],nose_color[1],nose_color[2], 1.0);
         this.nose_material.setDiffuse(nose_color[0],nose_color[1],nose_color[2], 1.0);
@@ -78,135 +89,300 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         this.nose_material.setShininess(10.0);
     }
 
-    //Changes bird speed
-    accelerate(key, delta_time) {
-        if(key == "W") {
-            this.speed += this.speed + this.acceleration * delta_time; //v = v0 + at
-            if(this.speed > this.max_speed)
-                this.speed = this.max_speed;
+    //Inititalize settings and variables
+    init() {
+        //Position coordinates
+        this.x = this.init_x;
+        this.y = this.init_y;
+        this.z = this.init_z;
+        this.y_before_pick = this.y;
+        //Directional parameters
+        this.direction_angle = this.init_direction_angle;
+        this.rot_wings = 0;
+        //Speed var's
+        this.speed = this.init_speed;
+        this.last_speed = 0;
+        this.y_speed = this.init_y_speed;
+        //Pick tree branch methods var's
+        this.ascending = false;
+        this.descending = false;
+        this.to_pick = false;
+        this.to_drop = false;
+        //Puts branch back in place
+        if(this.branch != undefined) {
+            this.branch.init();
+            this.scene.tree_branch = this.branch
+            this.branch = undefined;
+        }
+        else {
+            this.scene.tree_branch.init();
+        }
+    }
 
+    //Changes bird speed
+    accelerate(key) {
+        if(key == "W") {
+            this.speed += this.scene.speedFactor * (this.scene.delta_time/1000);
         }
 
         else if(key == "S") {
-            this.speed += this.speed - this.acceleration * delta_time; //v = v0 - at
-            if(this.speed < this.min_speed)
-                this.speed = this.min_speed;
+            this.speed -= this.scene.speedFactor * 1.5 * (this.scene.delta_time/1000);
         }
 
         else {
-            this.speed = 0;
+            this.speed -= this.scene.speedFactor * 0.7 * (this.scene.delta_time/1000);
         }
     }
 
-    //Changes bird direction angle
-    turn(key) {    
+    //Changes direction in which the bird is facing
+    turn(key) {            
         if(key == "A") {
-            this.direction_angle += this.angle_change;
+            this.direction_angle -= this.scene.speedFactor * this.angle_change;
         }
 
         else if(key == "D") {
-            this.direction_angle -= this.angle_change; 
+            this.direction_angle += this.scene.speedFactor * this.angle_change;
+        }
+
+        else {
+            this.direction_angle += this.scene.speedFactor * key;
         }
     }
 
-    //Updates birds coordinates - usar mateizes rotacao !?
-    update(delta_time) {
-        this.x += this.speed*Math.cos(delta_time)*delta_time + 0.5*this.acceleration*delta_time*delta_time; //x = x0 + v0t + 0.5*a*t^2
-        this.z += this.speed*Math.sin(delta_time)*delta_time + 0.5*this.acceleration*delta_time*delta_time;//z = z0 + v0t + 0.5*a*t^2
-        
-        //basic animation without movement (up and down) and wing movement (2)
-        // if(this.down) {
-        //     this.down = false;
-        //     this.y -= 1;
-        // }
-        // else {
-        //     this.down = true;
-        //     this.y += 1
-        // }
+    //Tries to pick a tree branch (only called when P is clicked)
+    pick() {
+        //Checks if it can pickup a branch that is referenced in Myscene
+        if(this.y == 0 && this.branch == undefined) { 
+            let z_init = this.scene.tree_branch.z + -4;
+            let z_final = this.scene.tree_branch.z + 4;
+            let x_init = this.scene.tree_branch.x - 4;
+            let x_final = this.scene.tree_branch.x + 4;
 
-        //checking for limits
-        if(this.x >= 30) //inverter se chegar limites
-            this.x = 30;
-        else if(this.x <= -30)
-            this.x = -30;
-        if(this.z >= 30)
-            this.z = 30;
-        else if(this.z <= -30)
-            this.z = -30;
+            if(!this.descending && this.ascending) {
+                if(this.x >= x_init && this.x <= x_final && this.z >= z_init && this.z <= z_final) {
+                    //adds reference to branch from MyScene to MyBird
+                    this.branch = this.scene.tree_branch;
+
+                }
+            }
+        }
     }
 
-    complete_anim(delta_time) {
-        this.scene.translate(this.x, this.y, this.z);
-        this.scene.rotate(this.direction_angle, 0, 1, 0);//está mal
+    drop() {
+        //Checks if it can drop a tree branch
+        if(this.y == 0) {
+            this.branch.x = this.x;
+            this.branch.z = this.z;
+            this.scene.tree_branch = this.branch
+            this.branch = undefined;
+            this.to_drop = false;
+        }
+    }
+
+    //Descend to pick tree bracnh (1 second animation)
+    descend() {
+        let speed_counter = 0;
+        //Calculates speed counter based on delta_time(seconds passed since last call)
+        speed_counter = (this.delta_time/1000) * this.y_before_pick;
+        this.y -= speed_counter;
+    }
+
+    //Ascend after picking tree branch (1 second animation)
+    ascend() {
+        let speed_counter = 0;
+        //Calculates speed counter based on delta_time(seconds passed since last call)
+        speed_counter = (this.delta_time/1000) * this.y_before_pick;
+        this.y += speed_counter;
+    }
+
+    //Changes y coordinate based on movement (all movements must be completed in 1 second)
+    changeY(t) {
+        var aux = (1000 / this.scene.update_period); // numero iter
+        //changes bird y to go up and down constantly -> animation must have duration of 1 second
+        //var y_counter = 0;
+        //y_counter = (this.delta_time/1000) * Math.PI;
+
+        
+        if ((this.to_pick || this.to_drop) && this.descending) {
+            this.descend();
+            this.checkBoundaries();
+        }
+        
+        else if ((this.to_pick || this.to_drop) && this.ascending) {
+            this.ascend();
+            this.checkBoundaries();
+        }
+
+        else {
+            //this.y += Math.sin(y_counter);
+            //console.log("math_sin: " + Math.sin(y_counter));
+            //console.log("y: " + this.y);
+            this.y = this.init_y + Math.sin(t/1000 * Math.PI);
+        }
+    }
+
+    //Check if updated coordinates are legal - turn same angle as the one that does with the normal
+    checkBoundaries() {
+        let angle_aux;
+
+        if(this.x >= 30) {
+            angle_aux = Math.PI/2 - this.direction_angle; 
+            this.turn(2*angle_aux);
+        }
+
+        else if(this.x <= -30) {
+            angle_aux = this.direction_angle - Math.PI;
+            angle_aux = Math.PI/2 - angle_aux;
+            this.turn(2*angle_aux);
+        }
+
+        if(this.z >= 30) {
+            angle_aux = this.direction_angle - Math.PI/2;
+            angle_aux = Math.PI/2 - angle_aux;
+            this.turn(2*angle_aux);
+        }
+        
+        else if(this.z <= -30) {
+            angle_aux = this.direction_angle - Math.PI/2;
+            angle_aux = Math.PI/2 - angle_aux;
+            this.turn(2*angle_aux);
+        } 
+
+        if(this.to_pick || this.to_drop) {
+            if(this.y <= 0) {
+                this.y = 0;
+                //stops descending
+                this.descending = false;
+                //starts ascending
+                this.ascending = true;
+            }
+
+            if(this.y >= this.y_before_pick) {
+                this.y = this.y_before_pick;
+                //stops ascending
+                this.ascending = false;
+                //animation terminates
+                this.to_pick = false; 
+                this.to_drop = false;
+            }
+        }
+    }
+
+    //Check if updated speed is legal 
+    checkSpeed() {
+        if(this.speed > this.max_speed) {
+            console.log(this.speed);
+            this.speed = this.max_speed;
+        }
+        else if(this.speed < this.min_speed) {
+            console.log(this.speed);
+            this.speed = this.min_speed;
+        }
+    }
+
+    //Updates birds coordinates 
+    update(t) {
+        if(this.speed == this.last_speed) {
+            this.accelerate(null);
+        }
+        //Stores current speed
+        let speed_init = this.speed ;
+        //Update time var's
+        this.delta_time = t - this.last_time;
+        this.total_time += this.delta_time;
+        this.last_time = t;
+        //Changes speed based on speedFactor 
+        this.speed *= this.scene.speedFactor;
+        //Checks if speed value is legal
+        this.checkSpeed();
+        //change y depending on the movement(constant, descending, ascending)
+        this.changeY(t);
+        //x = x0 + v0t
+        this.x += this.speed * Math.cos(this.direction_angle); 
+        //z = z0 + v0t 
+        this.z += this.speed * Math.sin(this.direction_angle);
+        //Swings bird wings
+        this.wings.update(t);
+        //check if updated coordinates are legal
+        this.checkBoundaries(); 
+        //Stores speed before update method
+        this.speed = speed_init;
+        this.last_speed = this.speed;
     }
 
     display() {
-        //move and rotate method and basic animation (ex 2 and 3)
-        this.complete_anim(this.delta_time);
-
         //face
         this.scene.pushMatrix();
-        this.face_material.apply();
-        this.scene.translate(1.5, 1.1, 0.5);
-        this.scene.scale(2, 1, 1);
-        this.scene.rotate(0.15*Math.PI, 0, 0, 1);
-        this.scene.rotate(Math.PI/2, 0, 1, 0);
-        this.face.display();
+            this.face_material.apply();
+            this.scene.translate(1.5, 1.1, 0.5);
+            this.scene.scale(2, 1, 1);
+            this.scene.rotate(0.15*Math.PI, 0, 0, 1);
+            this.scene.rotate(Math.PI/2, 0, 1, 0);
+            this.face.display();
         this.scene.popMatrix();
 
         //body
         this.scene.pushMatrix();
-        this.body_material.apply();
-        this.scene.translate(0, 0.35, 0.5);
-        this.scene.rotate(-0.35*Math.PI, 0, 0, 1);
-        this.scene.scale(1, 1.8, 1);
-        this.body.display();
+            this.body_material.apply();
+            this.scene.translate(0, 0.35, 0.5);
+            this.scene.rotate(-0.35*Math.PI, 0, 0, 1);
+            this.scene.scale(1, 1.8, 1);
+            this.body.display();
         this.scene.popMatrix();
 
         //wings
         this.scene.pushMatrix();
-        this.wings_material.apply();
-        this.scene.translate(0.3, -0.4, 0);
-        this.scene.rotate(0.15*Math.PI, 0, 0, 1);
-        this.wings.display();
+            this.wings_material.apply();
+            this.scene.translate(0.3, -0.4, 0);
+            this.wings.display();
         this.scene.popMatrix();
 
         //eyes
         this.scene.pushMatrix();
-        this.scene.translate(1.9, 1.1, 0.15);
-        this.scene.scale(0.3, 0.3, 0.1);
-        this.eyes.display();
+            this.scene.translate(1.9, 1.1, 0.15);
+            this.scene.scale(0.3, 0.3, 0.1);
+            this.eyes.display();
         this.scene.popMatrix();
 
         this.scene.pushMatrix();
-        this.scene.translate(1.9, 1.1, 0.75);
-        this.scene.scale(0.3, 0.3, 0.1);
-        this.eyes.display();
+            this.scene.translate(1.9, 1.1, 0.75);
+            this.scene.scale(0.3, 0.3, 0.1);
+            this.eyes.display();
         this.scene.popMatrix();
         
         //nose
         this.scene.pushMatrix();
-        this.nose_material.apply();
-        this.scene.translate(2.6, 1.25, 0.5);
-        this.scene.scale(0.14, 0.14, 0.14);
-        this.scene.rotate(-Math.PI/2, 0, 0, 1);
-        this.nose.display();
+            this.nose_material.apply();
+            this.scene.translate(2.6, 1.25, 0.5);
+            this.scene.scale(0.14, 0.14, 0.14);
+            this.scene.rotate(-Math.PI/2, 0, 0, 1);
+            this.nose.display();
         this.scene.popMatrix();
         
         //tail
         this.scene.pushMatrix();
-        this.body_material.apply();
-        this.scene.translate(-0.8, 0, 0.5);
-        this.scene.scale(1, 1, 0.8);
-        this.tail.display();
+            this.body_material.apply();
+            this.scene.translate(-0.4, 0.2, 0.5);
+            this.scene.scale(1, 1, 0.8);
+            this.tail.display();
         this.scene.popMatrix();
 
         //legs
         this.scene.pushMatrix();
-        this.scene.translate(0.3, -0.4, 0.2);
-        this.scene.scale(1.3, 1.3, 1.3);
-        this.legs.display();
+            this.scene.translate(0.3, -0.4, 0.2);
+            this.scene.scale(1.3, 1.3, 1.3);
+            this.legs.display();
         this.scene.popMatrix();
+
+        //tree branch
+        if(this.branch != undefined) {
+            this.scene.pushMatrix();
+                this.scene.translate(0.5, -0.55, 1.5);
+                this.scene.rotate(-Math.PI/2, 1, 0, 0);
+                this.branch.display();
+            this.scene.popMatrix();
+        }
+
     }
 
     enableNormalViz() {
@@ -227,27 +403,5 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         this.eyes.disableNormalViz();
         this.tail.disableNormalViz();
         this.legs.disableNormalViz();
-    }
-
-    hexToRgbA(hex)
-    {
-        var ret;
-        //either we receive a html/css color or a RGB vector
-        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-            ret=[
-                parseInt(hex.substring(1,3),16).toPrecision()/255.0,
-                parseInt(hex.substring(3,5),16).toPrecision()/255.0,
-                parseInt(hex.substring(5,7),16).toPrecision()/255.0,
-                1.0
-            ];
-        }
-        else
-            ret=[
-                hex[0].toPrecision()/255.0,
-                hex[1].toPrecision()/255.0,
-                hex[2].toPrecision()/255.0,
-                1.0
-            ];
-        return ret;
     }
 }

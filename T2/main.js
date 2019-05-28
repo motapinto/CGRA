@@ -14,6 +14,7 @@ serialInclude(['../lib/CGF.js',
                 'MyLightning.js',
                 //Simple Objects
                 'MyQuad.js',
+                'MyRectangle.js',
                 'MyTriangle.js',
                 //Complex Objects
                 'MyUnitCubeQuad.js',
@@ -24,6 +25,7 @@ serialInclude(['../lib/CGF.js',
                 'MyPrism.js',
                 'MyCylinder.js',
                 'MyCone.js',
+                'MyCloud.js',
                 'Plane.js',
                 //House
                 'MyHouse.js',
@@ -32,6 +34,7 @@ serialInclude(['../lib/CGF.js',
                 'MyBirdLegs.js',
                 'MyBirdTail.js',
                 'MyBirdWings.js',
+                'MyWings.js',
                 //CubeMap
                 'MyCubeMap.js',
 
