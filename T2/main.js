@@ -15,19 +15,22 @@ serialInclude(['../lib/CGF.js',
                 'MyQuad.js',
                 'MyRectangle.js',
                 'MyTriangle.js',
-                //Complex Objects
+                //Composed Objects
                 'MyPrism.js',
                 'MyCylinder.js',
                 'MyPyramid.js',
                 'MyCone.js',
                 'MyUnitCubeQuad.js',
                 'MyUnitCube.js',
-                'MySemiSphere.js',
                 'Plane.js',
-                //Other objects
+                'MySemiSphere.js',
+                'MySphere.js',
+                //Complex objects
                 'MyCloud.js',
                 'MyTerrain.js',
                 'MyRiver.js',
+                'MyNest.js',
+                'MyTree.js',
                 //House
                 'MyHouse.js',
                 //Bird

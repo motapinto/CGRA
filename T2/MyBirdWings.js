@@ -10,8 +10,11 @@ class MyBirdWings extends CGFobject {
 
         //Attributes
         this.scene = scene;
+        //W = delta_ang/delta_tim
+        this.ang_velocity = Math.PI/2;
+        this.circular_radius = 0;
         this.rot_wings = 0;
-        this.rot_wings_ang = (20*Math.PI)/180;
+        this.change_ang = -1;
         
         //Objects
         this.wing_left = new MyWings(scene);
@@ -19,9 +22,25 @@ class MyBirdWings extends CGFobject {
     }
 
     //Wings method that rotates wings
-    update(t) {
-        let speed_factor = (this.scene.bird.speed / this.scene.bird.max_speed) / 2;
-        this.rot_wings = Math.sin(((t/1000 * Math.PI)+Math.PI))/2;
+    update() {
+        //W = V / R
+        let angular_init = this.ang_velocity;
+
+        this.ang_velocity += this.scene.speedFactor;
+        this.rot_wings = (this.rot_wings + (2*this.ang_velocity * this.change_ang * (this.scene.delta_time/1000))) % Math.PI;  
+        
+        //delta ang = W * delta_time
+        if(this.rot_wings < -Math.PI/4){
+            this.change_ang = 1;
+        }
+
+        
+        if(this.rot_wings > Math.PI/4) {
+            this.change_ang = -1;
+        }
+        
+        this.ang_velocity = angular_init;
+
     }
 
     display() {            

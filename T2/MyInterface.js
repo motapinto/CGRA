@@ -17,7 +17,8 @@ class MyInterface extends CGFinterface
         this.gui.add(this.scene, 'speedFactor',0.1, 3.0).name('Speed');
 		this.gui.add(this.scene, 'displayNormals').name("Display normals"); //checkbox
 		this.gui.add(this.scene, 'displayAxis').name("Display axis"); //checkbox
-		this.gui.add(this.scene, 'selected_lights', this.scene.lightsIDs).name('Selected Light').onChange(this.scene.updateDayLight.bind(this.scene)); //checkbox with bind propriety
+        this.gui.add(this.scene, 'firstPerson').name("First person"); //checkbox
+        this.gui.add(this.scene, 'selected_lights', this.scene.lightsIDs).name('Selected Light').onChange(this.scene.updateDayLight.bind(this.scene)); //checkbox with bind propriety
 
 		return true;
 	}

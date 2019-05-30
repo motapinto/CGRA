@@ -10,8 +10,15 @@ class MyCloud extends CGFobject { //"Unit House" with height equal to 1
 
         this.scene = scene;
         this.cloud = new MyUnitCubeQuad(this.scene);
-
         this.size = 8;
+        this.cloud_part = new MySphere(scene, 30, 1, 20);
+
+        let blank = this.scene.hexToRgbA('#C1BEBA');
+        this.material = new CGFappearance(scene);
+        this.material.setAmbient(blank[0], blank[1], blank[2], 1.0);
+        this.material.setDiffuse(blank[0], blank[1], blank[2], 1.0);
+        this.material.setSpecular(blank[0], blank[1], blank[2], 1.0);
+		this.material.setShininess(10.0);
 
         this.init();
     }
@@ -39,9 +46,13 @@ class MyCloud extends CGFobject { //"Unit House" with height equal to 1
 
     display() {
         //display cloud
-        this.scene.pushMatrix();
-            this.scene.scale(this.size, 1, this.size);
-            this.cloud.display();
-        this.scene.popMatrix();
+        for (let i = 0 ; i < 3 ; i++) {
+            this.scene.pushMatrix();
+                this.scene.translate(2*i+2, 0, 4);
+                this.scene.scale(2, 2, 2);
+                this.material.apply();
+                this.cloud_part.display();
+            this.scene.popMatrix();
+        }
     }
 }

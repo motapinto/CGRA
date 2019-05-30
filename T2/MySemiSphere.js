@@ -43,7 +43,9 @@ class MySemiSphere extends CGFobject
                     var f = (i+1)*(this.stacks+1) + j+1;
                 
                     this.indices.push(a, b, c);
-                    this.indices.push(d, e, f);
+					this.indices.push(d, e, f);
+					this.indices.push(c, b, a);
+					this.indices.push(f, e, d);
                 }
 
 				this.normals.push(x, y, z);

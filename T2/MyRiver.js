@@ -43,6 +43,9 @@ class MyRiver extends CGFobject {
 		this.appearance.setTextureWrap('REPEAT', 'REPEAT');
 		this.river_map.bind(1);
 
+		this.scene.gl.texParameteri(this.scene.gl.TEXTURE_2D, this.scene.gl.TEXTURE_WRAP_S, this.scene.gl.REPEAT);
+		this.scene.gl.texParameteri(this.scene.gl.TEXTURE_2D, this.scene.gl.TEXTURE_WRAP_T, this.scene.gl.REPEAT);
+
         this.scene.pushMatrix();
         	this.river.display();
 		this.scene.popMatrix();

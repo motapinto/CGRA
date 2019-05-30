@@ -5,7 +5,7 @@
 */
 
 class MyBird extends CGFobject { //"Unit House" with height equal to 1
-    constructor(scene, face_text, body_text, wings_text, nose_text, eyes_text, tail_text, legs_text, branch) {
+    constructor(scene, face_text, body_text, wings_text, nose_text, eyes_text, tail_text, legs_text) {
         super(scene);
         
         this.scene = scene;
@@ -24,7 +24,8 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         this.eyes = new MyUnitCubeQuad(scene, eyes_text, body_text, body_text);
         this.tail = new MyBirdTail(scene, 4);
         this.legs = new MyBirdLegs(scene, 0.5);
-        this.branch = branch;
+        
+        this.branch = undefined;
 
         //Initial position coordinates
         this.init_x = -20;
@@ -53,6 +54,8 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         
         //Set all initial textures
         this.setTextures();
+        this.counter = 0;
+        this.pos = 0;
     }
 
     //Sets bird textures and materials
@@ -104,8 +107,8 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         this.last_speed = 0;
         this.y_speed = this.init_y_speed;
         //Pick tree branch methods var's
-        this.ascending = false;
-        this.descending = false;
+        this.ascending = false 
+        this.descending = false
         this.to_pick = false;
         this.to_drop = false;
         //Puts branch back in place
@@ -134,7 +137,7 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         }
     }
 
-    //Changes direction in which the bird is facing
+    //Changes direction in which the bird is facing -> PROBLEMA COM SPEED FACTOR!!
     turn(key) {          
         if(key == "A") {
             this.direction_angle = (this.direction_angle - (this.scene.speedFactor * this.angle_change)) % (Math.PI*2);
@@ -145,36 +148,23 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         }
 
         else {
-            this.direction_angle += this.scene.speedFactor * key;
+            this.direction_angle += /*this.scene.speedFactor **/ key;
         }
     }
 
     //Tries to pick a tree branch (only called when P is clicked)
     pick() {
         //Checks if it can pickup a branch that is referenced in Myscene
-        if(this.y == 0 && this.branch == undefined) { 
-            let z_init = this.scene.tree_branch.z + -4;
-            let z_final = this.scene.tree_branch.z + 4;
-            let x_init = this.scene.tree_branch.x - 4;
-            let x_final = this.scene.tree_branch.x + 4;
-
-            if(!this.descending && this.ascending) {
-                if(this.x >= x_init && this.x <= x_final && this.z >= z_init && this.z <= z_final) {
-                    //adds reference to branch from MyScene to MyBird
-                    this.branch = this.scene.tree_branch;
-
-                }
-            }
+        if(this.branch == undefined && this.scene.tree_branch.pick() == true) {
+            this.branch = this.scene.tree_branch;
         }
     }
 
     drop() {
-        //Checks if it can drop a tree branch
-        if(this.y == 0) {
-            this.branch.x = this.x;
-            this.branch.z = this.z;
-            this.scene.tree_branch = this.branch
-            this.branch = undefined;
+        if(this.scene.nest.canDropInNest() == true) {
+            this.branch.drop();
+        }
+        else if(this.y == 0) {
             this.to_drop = false;
         }
     }
@@ -208,7 +198,9 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         }
 
         else {
-            this.y = this.init_y + Math.sin(t/1000 * Math.PI);
+            this.y += Math.sin(this.pos)/4;
+            this.pos += Math.PI * this.scene.delta_time/500;            
+            //this.y -= (this.scene.delta_time % 1000) / 2000
         }
     }
 
@@ -240,8 +232,17 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         } 
 
         if(this.to_pick || this.to_drop || !this.to_drop) {
+
             if(this.y <= 0) {
                 this.y = 0;
+                //stops descending
+                this.descending = false;
+                //starts ascending
+                this.ascending = true;
+            }
+
+            else if(this.scene.nest.canDropInNest() && this.y <= (this.scene.nest.y - this.scene.nest.radius)) {
+                this.y = (this.scene.nest.y - this.scene.nest.radius);
                 //stops descending
                 this.descending = false;
                 //starts ascending
@@ -327,6 +328,7 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
             this.eyes.display();
         this.scene.popMatrix();
 
+        //eyes
         this.scene.pushMatrix();
             this.scene.translate(1.9, 1.1, 0.75);
             this.scene.scale(0.3, 0.3, 0.1);

@@ -72,8 +72,6 @@ class MyLSystem extends CGFobject {
 
             this.axiom = newString;
         }
-        console.log("length: " + this.axiom.length);
-
     }
 
     display(){

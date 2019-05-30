@@ -6,9 +6,10 @@ class MyTerrain extends CGFobject {
 		this.scene = scene;
         this.texture = texture;
         this.heightmap = heightmap;
-        this.altimetry = altimetry;
+		this.altimetry = altimetry;
+		this.lenght = length;
         
-        this.terrain = new Plane(scene, length);
+        this.terrain = new Plane(scene, 32);
 		this.terrainShader =  new CGFshader(this.scene.gl, "shaders/terrain.vert", "shaders/terrain.frag");
 		this.scene.setActiveShader(this.terrainShader);
 
@@ -42,7 +43,8 @@ class MyTerrain extends CGFobject {
 		this.terrain_map.bind(1);
 		this.terrain_altimetry.bind(2);
 
-        this.scene.pushMatrix();
+		this.scene.pushMatrix();
+			//this.scene.scale(this.length, this.length, this.length);
         	this.terrain.display();
 		this.scene.popMatrix();
 		
