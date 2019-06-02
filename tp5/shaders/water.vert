@@ -17,7 +17,7 @@ varying vec2 vTextureCoord;
 void main() {
 	vTextureCoord = aTextureCoord;
 	
-	vec4 map = texture2D(uSampler2, vec2((timeFactor)*0.04, (timeFactor)*0.04) + vTextureCoord);
+	vec4 map = texture2D(uSampler2, vec2(timeFactor*0.01, timeFactor*0.01) + vTextureCoord);
  
 	vec4 vertex = vec4(uPMatrix * uMVMatrix * vec4(aVertexPosition + aVertexNormal * map.rgb * 0.05, 1.0)); //when 
 
