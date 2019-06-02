@@ -18,15 +18,15 @@ class MyLSystem extends CGFobject {
    initGrammar(obj){
        if(obj == "plant") {
            this.grammar = {
-            "F": new MyBranch(this.scene, 4, 1, 1),
+            "F": new MyTreeBranch(this.scene, 4, 1, 1, 'trunk1.jpg', false),
             "X": new MyLeaf(this.scene)
         };
         
        }
        else if (obj == "lightning") {
            this.grammar = {
-               "F": new MyRectangle(this.scene, "lightning"),
-               "X": new MyRectangle(this.scene, "lightning")
+               "F": new MyQuad(this.scene, undefined, true),
+               "X": new MyQuad(this.scene, undefined, true)
            };
        }
 }

@@ -26,7 +26,7 @@ class MyBirdWings extends CGFobject {
         //W = V / R
         let angular_init = this.ang_velocity;
 
-        this.ang_velocity += this.scene.speedFactor;
+        this.ang_velocity += (this.scene.speedFactor+2*this.scene.bird.speed)/2;
         this.rot_wings = (this.rot_wings + (2*this.ang_velocity * this.change_ang * (this.scene.delta_time/1000))) % Math.PI;  
         
         //delta ang = W * delta_time

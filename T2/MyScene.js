@@ -11,10 +11,13 @@ class MyScene extends CGFscene {
 
         this.displayNormals = false;
         this.firstPerson = false;
+        this.cubemap_show = false;
+        this.displayAxis = false;
         this.selected_lights = 0;
-        this.displayAxis = true;
         this.scaleFactor = 1.0;
+        this.scaleScene = 1.0;
         this.speedFactor = 1.0;
+        this.score = 0;
 
         this.camera_x = 40;
         this.camera_y = 80;
@@ -24,6 +27,8 @@ class MyScene extends CGFscene {
     init(application) {
         super.init(application);
         this.initCameras();
+
+        this.setThirdView = false;
 
         //Background color
         this.gl.clearColor(1, 1, 1, 1.0);
@@ -54,7 +59,11 @@ class MyScene extends CGFscene {
 
         //Initialize scene objects
         this.axis = new CGFaxis(this);
-        this.tree_branch = new MyBranch(this, 20, 2, 0.15);
+        this.tree_branch = [];
+        this.rnd = [];
+        for (var i = 0; i < 6; i++) {
+            this.tree_branch[i] = new MyTreeBranch(this, 20, 2, 0.1, 'trunk1.jpg', false);
+        };
         this.bird = new MyBird(this, 'bird_face.jpg', 'escamas.jpg', 'wings.jpg', 'eyes.jpg', 'eyes.jpg', 'tail.jpg', 'legs.jpg');
         this.cubemap = new MyCubeMap(this, 60, this.selected_lights, 'day_cubemap.png', 'night_cubemap.png');
         this.house = new MyHouse(this, 4, 8, 'wall.jpg', 'roof.jpg', 'pillar.jpg', 'door.png', 'window.png');
@@ -62,8 +71,20 @@ class MyScene extends CGFscene {
         this.cloud = new MyCloud(this, 20, 2, 10);
         this.river = new MyRiver(this, 20, 'waterTex.jpg', 'waterMap.jpg');
         this.terrain = new MyTerrain(this, 32, 'terrain.jpg', 'heightmap.png', 'altimetry.png'); 
-        this.nest = new MyNest(this);
+        this.nest = new MyNest2(this, 15, 'trunk1.jpg', 'straw.jpg');
+        this.tree = new MyTree(this, 7, 1.5, 7, 3, 'trunk.jpg', 'leaf.jpg');
+        this.stick = new MyTreeBranch(this, 20, 8, 0.5, 'trunk1.jpg', true);
+       
 
+        //Generating random values for the nest
+        this.cont = 0;
+        for (var i = 0; i < 6; i++){	
+            for (var j = 0; j < 4; j++) {
+                this.rnd[this.cont] = Math.random();
+                this.cont++;
+            };
+        };
+        
         //Lights var's
         this.lights = [this.lights[0], this.lights[1], this.lights[2]];
         this.lightsIDs = { 'Day': 0, 'Night': 1};  
@@ -84,10 +105,10 @@ class MyScene extends CGFscene {
     }
 
     initLights() {
-        this.setGlobalAmbientLight(0.7, 0.7, 0.7, 1.0);
+        this.setGlobalAmbientLight(0.9, 0.9, 0.9, 1.0);
         
         this.sun_color = this.hexToRgbA('#F3C25F');
-        this.lights[0].setPosition(0, 30, 0, 1.0);
+        this.lights[0].setPosition(0, 60, 0, 1.0);
         this.lights[0].setDiffuse(this.sun_color[0], this.sun_color[1], this.sun_color[2], 1.0);
         this.lights[0].setSpecular(this.sun_color[0], this.sun_color[1], this.sun_color[2], 1.0);
         this.lights[0].enable();
@@ -134,11 +155,15 @@ class MyScene extends CGFscene {
     }
 
     firstPersonView() {
-
+        this.camera.setPosition(vec3.fromValues(this.bird.x - 25*Math.cos(this.bird.direction_angle), this.bird.init_y+20, this.bird.z - 25*Math.sin(this.bird.direction_angle)));
+        //the bird is the target
+        this.camera.setTarget(vec3.fromValues(this.bird.x, this.bird.y, this.bird.z));
     }
 
     thirdPersonView() {
-        //this.camera = new CGFcamera(1, 1, 200, vec3.fromValues(this.camera_x, this.camera_y, this.camera_z), vec3.fromValues(12, 7, 12));
+        this.camera.setPosition(vec3.fromValues(80, 90, 80));
+        this.camera.setTarget(vec3.fromValues(0, 0, 0));
+        //this.camera = new CGFcamera(1, 0.1, 500, vec3.fromValues(80, 90, 80), vec3.fromValues(0, 0, 0));
     }
 
     update(t){
@@ -159,6 +184,7 @@ class MyScene extends CGFscene {
         //tries to drop tree branch
         if(this.bird.to_drop) {
             this.bird.drop();
+            this.updateScore();
         }
         //Moves cloud
         this.cloud.move();   
@@ -229,6 +255,10 @@ class MyScene extends CGFscene {
         this.lights[2].update();
     }
 
+    updateScore() {
+        this.score++;
+    }
+
     display() {
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -272,13 +302,46 @@ class MyScene extends CGFscene {
 
         if(this.firstPerson) {
             this.firstPersonView();
+            this.setThirdView = false;
         }
-        else {
+        else if(!this.firstPerson && !this.setThirdView){
             this.thirdPersonView();
+            this.setThirdView = true;
         }
 
+        if(this.cubemap_show) {
+            //Displays cubemap
+            this.pushMatrix();
+                this.translate(-60, 0, -60);
+                this.scale(2, 1.5, 2);
+                this.cubemap.display();
+            this.popMatrix();
+        }
+        
         this.pushMatrix();
+            this.scale(this.scaleScene,this.scaleScene,this.scaleScene);
+            
+            //NEST
+            this.pushMatrix();
+            this.rotate(-Math.PI/2, 1, 0, 0);
+            this.translate(5, -20, 7);
+            this.nest.display();
+            this.popMatrix();
             this.scale(2, 2, 2);
+
+            //BRANCHS
+            for (var i = 0; i < 6; i++) {
+                //Draws branch when it is not with the bird
+                if(this.bird.branch == undefined || this.bird.branch != this.tree_branch[i]) {
+                    this.pushMatrix();
+                        this.translate(this.tree_branch[i].x, this.tree_branch[i].y, this.tree_branch[i].z);                 
+                        this.rotate(Math.PI*(this.rnd[i]*2-1), 0, 1, 0);
+                        this.rotate(-Math.PI/2, 1, 0, 0);
+                        //this.scale(0.7+this.rnd[4*i]*0.6, 0.7+this.rnd[4*i]*0.6, 0.7+this.rnd[4*i]*0.6);
+                        this.tree_branch[i].display();
+                    this.popMatrix();
+                }
+            }
 
             //show LSPlants 
             for(var i = 0 ; i < 2; i++) {
@@ -291,80 +354,70 @@ class MyScene extends CGFscene {
                     this.popMatrix();
                 }
             }
-            
-            //Show bird and changes to bird coordinates based on movement methods
-            this.pushMatrix();
-                this.translate(this.bird.x, this.bird.y , this.bird.z);
-                this.rotate(-this.bird.direction_angle, 0, 1, 0);
-                this.scale(0.8, 0.8, 0.8);
-                this.scale(this.scaleFactor,this.scaleFactor,this.scaleFactor);
-                this.bird.display();
-            this.popMatrix();
 
-            //Show terrain
-            this.pushMatrix();
-                this.translate(0, -4.7, 0);
-                this.rotate(-Math.PI/2, 1, 0, 0);
-                this.terrain.display();
-            this.popMatrix();
-            
-            //Displays cubemap
-            this.pushMatrix();
-                this.translate(-30, 0, -30);
-                //this.cubemap.display();
-            this.popMatrix();
-
-            this.pushMatrix();
-                this.translate(12, 0, -7);
-                this.house.display();
-            this.popMatrix();
-
-            //Displays river
-            this.pushMatrix();
-                this.translate(0, -3.5, 0);
-                this.scale(55, 60, 55)
-                this.rotate(-Math.PI/2, 1, 0, 0);
-                this.river.display();
-            this.popMatrix();
-
-            //Draws branch when it is not with the bird
-            if(this.bird.branch == undefined) {
                 this.pushMatrix();
-                    this.translate(this.tree_branch.x, this.tree_branch.y, this.tree_branch.z);
+                    this.translate(2, 3, 10);
+                    this.rotate(-Math.PI/2, 0, 0, 1);
+                    this.stick.display();
+                this.popMatrix();
+
+                this.pushMatrix();
+                    this.translate(10, 0, 10);
+                    this.tree.display();
+                this.popMatrix();
+            
+                //Show bird and changes to bird coordinates based on movement methods
+                this.pushMatrix();
+                    this.scale(0.8, 0.8, 0.8);
+                    this.bird.display();
+                this.popMatrix();
+
+                //Show terrain
+                this.pushMatrix();
+                    this.translate(0, -4.7, 0);
                     this.rotate(-Math.PI/2, 1, 0, 0);
-                    this.tree_branch.display();
+                    this.terrain.display();
                 this.popMatrix();
-            }
 
-            //draws nest
-            this.pushMatrix();
-                this.nest.display();
-            this.popMatrix();
-            
-            //Draws a cloud and moves it accordingly to it's move method
-            this.pushMatrix();
-                this.lights[2].setPosition(this.cloud.x + this.cloud.size/2, this.cloud.y-this.cloud.size/2, this.cloud.z + this.cloud.size/2 - 1, 1.0);
-                this.translate(this.cloud.x, this.cloud.y, this.cloud.z);
-                this.cloud.display();
-            this.popMatrix();
-
-            //Lightning display based on cloud position -> associated with a light when displayed
-            if(this.lightning.draw) {
                 this.pushMatrix();
-                    this.lights[2].enable();
-                    this.lights[2].update();
-                    this.material.apply();
-                    this.translate(this.cloud.x + this.cloud.size/2, this.cloud.y, this.cloud.z + this.cloud.size/2);
-                    this.rotate(Math.PI, 1, 0, 0);
-                    this.scale(1, 0.5, 1);
-                    this.lightning.display();
+                    this.translate(12, 0, -7);
+                    this.house.display();
                 this.popMatrix();
-            }
-            else {
-                this.lights[2].disable();
-                this.lights[2].update();
-            }
-            // ---- END Primitive drawing section
+
+                //Displays river
+                this.pushMatrix();
+                    this.translate(0, -3.5, 0);
+                    this.scale(55, 60, 55)
+                    this.rotate(-Math.PI/2, 1, 0, 0);
+                    this.river.display();
+                this.popMatrix();
+
+                
+                
+                //Draws a cloud and moves it accordingly to it's move method
+                this.pushMatrix();
+                    this.lights[2].setPosition(this.cloud.x + this.cloud.size/2, this.cloud.y-this.cloud.size/2, this.cloud.z + this.cloud.size/2 - 1, 1.0);
+                    this.translate(this.cloud.x, this.cloud.y, this.cloud.z);
+                    this.cloud.display();
+                this.popMatrix();
+
+                //Lightning display based on cloud position -> associated with a light when displayed
+                if(this.lightning.draw) {
+                    this.pushMatrix();
+                        this.lights[2].enable();
+                        this.lights[2].update();
+                        this.material.apply();
+                        this.translate(this.cloud.x + this.cloud.size/2, this.cloud.y, this.cloud.z + this.cloud.size/2);
+                        this.rotate(Math.PI, 1, 0, 0);
+                        this.scale(1, 0.5, 1);
+                        this.lightning.display();
+                    this.popMatrix();
+                }
+                else {
+                    this.lights[2].disable();
+                    this.lights[2].update();
+                }
+                // ---- END Primitive drawing section
         
         this.popMatrix();
     }

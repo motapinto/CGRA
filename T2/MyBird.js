@@ -114,11 +114,13 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
         //Puts branch back in place
         if(this.branch != undefined) {
             this.branch.init();
-            this.scene.tree_branch = this.branch
+            this.scene.tree_branch = this.branch;
             this.branch = undefined;
         }
         else {
-            this.scene.tree_branch.init();
+            for (var i = 0; i < 6; i++) {
+                this.scene.tree_branch[i].init();
+            }
         }
     }
 
@@ -155,8 +157,10 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     //Tries to pick a tree branch (only called when P is clicked)
     pick() {
         //Checks if it can pickup a branch that is referenced in Myscene
-        if(this.branch == undefined && this.scene.tree_branch.pick() == true) {
-            this.branch = this.scene.tree_branch;
+        for (var i = 0; i < 6; i++) {
+            if(this.branch == undefined && this.scene.tree_branch[i].pick(i) == true) {
+                this.branch = this.scene.tree_branch[i];
+            }
         }
     }
 
@@ -295,79 +299,85 @@ class MyBird extends CGFobject { //"Unit House" with height equal to 1
     }
 
     display() {
-        //face
         this.scene.pushMatrix();
-            this.face_material.apply();
-            this.scene.translate(1.5, 1.1, 0.5);
-            this.scene.scale(2, 1, 1);
-            this.scene.rotate(0.15*Math.PI, 0, 0, 1);
-            this.scene.rotate(Math.PI/2, 0, 1, 0);
-            this.face.display();
-        this.scene.popMatrix();
+        this.scene.translate(this.x, this.y , this.z);
+        this.scene.rotate(-this.direction_angle, 0, 1, 0);
+        this.scene.scale(this.scene.scaleFactor,this.scene.scaleFactor,this.scene.scaleFactor);
 
-        //body
-        this.scene.pushMatrix();
-            this.body_material.apply();
-            this.scene.translate(0, 0.35, 0.5);
-            this.scene.rotate(-0.35*Math.PI, 0, 0, 1);
-            this.scene.scale(1, 1.8, 1);
-            this.body.display();
-        this.scene.popMatrix();
-
-        //wings
-        this.scene.pushMatrix();
-            this.wings_material.apply();
-            this.scene.translate(0.3, -0.4, 0);
-            this.wings.display();
-        this.scene.popMatrix();
-
-        //eyes
-        this.scene.pushMatrix();
-            this.scene.translate(1.9, 1.1, 0.15);
-            this.scene.scale(0.3, 0.3, 0.1);
-            this.eyes.display();
-        this.scene.popMatrix();
-
-        //eyes
-        this.scene.pushMatrix();
-            this.scene.translate(1.9, 1.1, 0.75);
-            this.scene.scale(0.3, 0.3, 0.1);
-            this.eyes.display();
-        this.scene.popMatrix();
-        
-        //nose
-        this.scene.pushMatrix();
-            this.nose_material.apply();
-            this.scene.translate(2.6, 1.25, 0.5);
-            this.scene.scale(0.14, 0.14, 0.14);
-            this.scene.rotate(-Math.PI/2, 0, 0, 1);
-            this.nose.display();
-        this.scene.popMatrix();
-        
-        //tail
-        this.scene.pushMatrix();
-            this.body_material.apply();
-            this.scene.translate(-0.4, 0.2, 0.5);
-            this.scene.scale(1, 1, 0.8);
-            this.tail.display();
-        this.scene.popMatrix();
-
-        //legs
-        this.scene.pushMatrix();
-            this.scene.translate(0.3, -0.4, 0.2);
-            this.scene.scale(1.3, 1.3, 1.3);
-            this.legs.display();
-        this.scene.popMatrix();
-
-        //tree branch
-        if(this.branch != undefined) {
+            //face
             this.scene.pushMatrix();
-                this.scene.translate(0.5, -0.55, 1.5);
-                this.scene.rotate(-Math.PI/2, 1, 0, 0);
-                this.branch.display();
+                this.face_material.apply();
+                this.scene.translate(1.5, 1.1, 0.5);
+                this.scene.scale(2, 1, 1);
+                this.scene.rotate(0.15*Math.PI, 0, 0, 1);
+                this.scene.rotate(Math.PI/2, 0, 1, 0);
+                this.face.display();
             this.scene.popMatrix();
-        }
 
+            //body
+            this.scene.pushMatrix();
+                this.body_material.apply();
+                this.scene.translate(0, 0.35, 0.5);
+                this.scene.rotate(-0.35*Math.PI, 0, 0, 1);
+                this.scene.scale(1, 1.8, 1);
+                this.body.display();
+            this.scene.popMatrix();
+
+            //wings
+            this.scene.pushMatrix();
+                this.wings_material.apply();
+                this.scene.translate(0.3, -0.4, 0);
+                this.wings.display();
+            this.scene.popMatrix();
+
+            //eyes
+            this.scene.pushMatrix();
+                this.scene.translate(1.9, 1.1, 0.15);
+                this.scene.scale(0.3, 0.3, 0.1);
+                this.eyes.display();
+            this.scene.popMatrix();
+
+            //eyes
+            this.scene.pushMatrix();
+                this.scene.translate(1.9, 1.1, 0.75);
+                this.scene.scale(0.3, 0.3, 0.1);
+                this.eyes.display();
+            this.scene.popMatrix();
+            
+            //nose
+            this.scene.pushMatrix();
+                this.nose_material.apply();
+                this.scene.translate(2.6, 1.25, 0.5);
+                this.scene.scale(0.14, 0.14, 0.14);
+                this.scene.rotate(-Math.PI/2, 0, 0, 1);
+                this.nose.display();
+            this.scene.popMatrix();
+            
+            //tail
+            this.scene.pushMatrix();
+                this.body_material.apply();
+                this.scene.translate(-0.4, 0.2, 0.5);
+                this.scene.scale(1, 1, 0.8);
+                this.tail.display();
+            this.scene.popMatrix();
+
+            //legs
+            this.scene.pushMatrix();
+                this.scene.translate(0.3, -0.4, 0.2);
+                this.scene.scale(1.3, 1.3, 1.3);
+                this.legs.display();
+            this.scene.popMatrix();
+
+            //tree branch
+            if(this.branch != undefined) {
+                this.scene.pushMatrix();
+                    this.scene.translate(0.5, -0.55, 1.5);
+                    this.scene.rotate(-Math.PI/2, 1, 0, 0);
+                    this.branch.display();
+                this.scene.popMatrix();
+            }
+            
+        this.scene.popMatrix();
     }
 
     enableNormalViz() {

@@ -9,7 +9,6 @@ class MyCloud extends CGFobject { //"Unit House" with height equal to 1
         super(scene);
 
         this.scene = scene;
-        this.cloud = new MyUnitCubeQuad(this.scene);
         this.size = 8;
         this.cloud_part = new MySphere(scene, 30, 1, 20);
 

@@ -6,8 +6,10 @@
  */
 
 class MyQuad extends CGFobject {
-	constructor(scene, coords) { 
+	constructor(scene, coords, rect) { 
 		super(scene);
+		this.rect = rect;
+		
 		this.initBuffers();
 
 		if (coords != undefined)
@@ -15,12 +17,22 @@ class MyQuad extends CGFobject {
 	}
 	
 	initBuffers() {
-		this.vertices = [
-			0, 0, 0,	//0
-			1, 0, 0,	//1
-			0, 1, 0,	//2
-			1, 1, 0		//3
-		];
+		if(this.rect) {
+			this.vertices = [
+				0, 0, 0,	//0
+				0.2, 0, 0,	//1
+				0, 1, 0,	//2
+				0.2, 1, 0	//3
+			];
+		}
+		else {
+			this.vertices = [
+				0, 0, 0,	//0
+				1, 0, 0,	//1
+				0, 1, 0,	//2
+				1, 1, 0		//3
+			];
+		}
 
 		this.indices = [
 			0, 1, 2,

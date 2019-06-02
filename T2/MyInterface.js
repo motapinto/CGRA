@@ -14,14 +14,20 @@ class MyInterface extends CGFinterface
         this.initKeys();
         
         this.gui.add(this.scene, 'scaleFactor',0.5, 3.0).name('Scale');
+        this.gui.add(this.scene, 'scaleScene',0.5, 3.0).name('Scale scene');
         this.gui.add(this.scene, 'speedFactor',0.1, 3.0).name('Speed');
+        this.gui.add(this.scene, 'score').name('Score').onChange(this.scene.updateScore.bind(this.scene.score))
 		this.gui.add(this.scene, 'displayNormals').name("Display normals"); //checkbox
 		this.gui.add(this.scene, 'displayAxis').name("Display axis"); //checkbox
         this.gui.add(this.scene, 'firstPerson').name("First person"); //checkbox
+        this.gui.add(this.scene, 'cubemap_show').name("Display cubemap"); //checkbox
         this.gui.add(this.scene, 'selected_lights', this.scene.lightsIDs).name('Selected Light').onChange(this.scene.updateDayLight.bind(this.scene)); //checkbox with bind propriety
+    
+    }
 
-		return true;
-	}
+    update(score) {
+        this.score = score;
+    }
 
 	initKeys() {
         // create reference from the scene to the GUI

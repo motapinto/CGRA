@@ -8,12 +8,10 @@ serialInclude(['../lib/CGF.js',
                 //Modelação Procedimental
                 'MyLSystem.js',
                 'MyLSPlant.js',
-                'MyBranch.js',
                 'MyLeaf.js',
                 'MyLightning.js',
                 //Simple Objects
                 'MyQuad.js',
-                'MyRectangle.js',
                 'MyTriangle.js',
                 //Composed Objects
                 'MyPrism.js',
@@ -29,8 +27,9 @@ serialInclude(['../lib/CGF.js',
                 'MyCloud.js',
                 'MyTerrain.js',
                 'MyRiver.js',
-                'MyNest.js',
+                'MyNest2.js',
                 'MyTree.js',
+                'MyTreeBranch.js',
                 //House
                 'MyHouse.js',
                 //Bird
@@ -46,9 +45,8 @@ serialInclude(['../lib/CGF.js',
 main=function()
 {
     var app = new CGFapplication(document.body);
-    var myScene = new MyScene();
     var myInterface = new MyInterface();
-
+    var myScene = new MyScene();
     app.init();
     app.setScene(myScene);
     app.setInterface(myInterface);

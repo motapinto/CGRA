@@ -18,9 +18,8 @@ class MyLightning extends MyLSystem {
         this.axiom = "X";
         this.ruleF = "FF";
         this.ruleX = "F[-X][X]F[-X]+FX";
-        this.ruleX1 = "F[-X][-X]F[+X]+X"; //produção estocástica -> gera lightning diferente a cada generate
-        this.ruleX4 = "F[/X][X]F[\\X]+X";
-        this.ruleX7 = "F[^X][X]F[&X]^XX";
+        this.ruleX1 = "F[-X][+X]F[+X]-X"; //produção estocástica -> gera lightning diferente a cada generate
+        this.ruleX4 = "F[/X][\\-X]-F[X]-X";
         this.LSangle = 25.0;
         this.LSiter = 3;
         this.LSscaleFactor = 0.5;
@@ -31,7 +30,7 @@ class MyLightning extends MyLSystem {
                 this.axiom,
                 {
                     "F": [ this.ruleF ],
-                    "X": [  this.ruleX, this.ruleX1, this.ruleX4, this.ruleX7 ]
+                    "X": [ this.ruleX, this.ruleX1, this.ruleX4]
                 }, 
                 this.LSangle,
                 this.LSiter,
