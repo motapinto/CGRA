@@ -1,6 +1,6 @@
 # CGRA
 
-> **2017/2018** - 3rd Year, 1st Semester
+> **2017/2018** - 2rd Year, 2st Semester
 >
 > **Course:** Computação Gráfica: [CGRA page in sigarra](https://sigarra.up.pt/feup/pt/ucurr_geral.ficha_uc_view?pv_ocorrencia_id=368702) | Computer Graphics
 >
